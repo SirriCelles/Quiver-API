@@ -1,20 +1,34 @@
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
+import express from 'express';
+import path from 'path';
+import cookieParser from 'cookie-parser';
+import logger from 'morgan';
+import swaggerJSDoc from 'swagger-jsdoc';
+import swaggerUi from 'swagger-ui-express';
 
-var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
+import { NODE_ENV } from './config/env.js';
 
-var app = express();
+import swaggerOptions from './utils/swaggerOptions.js';
 
-app.use(logger('dev'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+const app = express();
+
+//log APIs in development
+if (NODE_ENV === 'development') {
+  app.use(logger('dev'));
+}
+
+// middle ware to render the body to the request. simply put , it will attach a body json object to
+// the incomming request
+app.use(express.json({ limit: '10kb' }));
+
+// app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
+//Serving static files
+// app.use(express.static(path.join(__dirname, 'public')));
 
-module.exports = app;
+const specs = swaggerJSDoc(swaggerOptions);
+
+// Serve Swagger UI at /api-docs
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
+
+export default app;
