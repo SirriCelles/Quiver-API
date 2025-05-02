@@ -42,3 +42,5 @@ const globalErrorHandler = (err, req, res, next) => {
     sendProductionError(err, res);
   }
 };
+
+export default globalErrorHandler;
