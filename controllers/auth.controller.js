@@ -19,6 +19,10 @@ const signToken = async (id) => {
   return token;
 };
 
+const verifyToken = async (token) => {
+  return await promisify(jwt.verify)(token, JWT_SECRET);
+};
+
 // for security always store JWT in an HTTP cookie and not local storage
 // A cokkie is a text that the server can send to the client whane the client recieves a cookie it automatically
 // stores this cookie and sends it with all future request
@@ -62,7 +66,7 @@ export const signIn = catchAsync(async (req, res, next) => {
   // get user and check if email n password  exist
   const { email, password } = req.body;
   if (!email || !password) {
-    const message = 'Email or Passord not provided';
+    const message = 'Email or Password not provided';
     return next(new AppError(message, 400));
   }
 
@@ -77,7 +81,47 @@ export const signIn = catchAsync(async (req, res, next) => {
   // log user in, attach user to req object
   await createAndSendToken(user, 200, res);
 });
-export const forgotPassword = () => {};
+
+// AUTHORIZE
+export const authorize = catchAsync(async (req, res, next) => {
+  // to authorize user,
+  let token;
+  // Get Token
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith('Bearer')
+  ) {
+    token = req.headers.authorization.split(' ')[1];
+  }
+
+  if (!token) return next(new AppError('Please login to get access', 401));
+
+  // validate token
+  // check that token has not  expired
+  // get and verify user
+  const decoded = await verifyToken(token);
+  const authUser = await User.findById(decoded.id);
+
+  if (!authUser)
+    return next(new AppError('Invalid token. User no longer exist'), 401);
+
+  // check if user changed password after the jwt was issued
+  if (await authUser.checkForChangedPassword(decoded.iat)) {
+    return next(
+      new AppError(
+        'Invalid token. User recently changed password! Please login',
+        401,
+      ),
+    );
+  }
+
+  // authorize user
+  req.user = authUser;
+
+  next();
+});
+
+export const forgotPassword = catchAsync(async (req, res, next) => {});
 export const resetPassword = () => {};
-export const authorize = () => {};
+
 export const updatePassword = () => {};

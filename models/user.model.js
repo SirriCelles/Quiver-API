@@ -73,6 +73,19 @@ userSchema.methods.verifyPassword = async function (
   return await bcrypt.compare(signInPasword, userPassword);
 };
 
+userSchema.methods.checkForChangedPassword = async function (jwtTimestamp) {
+  if (this.passwordChangedAt && this.passwordChangedAt !== null) {
+    const changeTimestamp = parseInt(
+      this.passwordChangedAt.getTime() / 1000,
+      10,
+    );
+
+    return jwtTimestamp < changeTimestamp;
+  }
+
+  return false;
+};
+
 const User = mongoose.model('User', userSchema);
 
 export default User;
