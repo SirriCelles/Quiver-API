@@ -12,6 +12,7 @@ import {
 } from '../config/env.js';
 import AppError from '../utils/appError.js';
 import sendEMail from '../utils/email.js';
+import { equal } from 'assert';
 
 const signToken = async (id) => {
   const token = await promisify(jwt.sign)({ id }, JWT_SECRET, {
@@ -165,7 +166,42 @@ export const resetPassword = catchAsync(async (req, res, next) => {
   await createAndSendToken(user, 200, res);
 });
 
-export const updatePassword = () => {};
+export const updatePassword = catchAsync(async (req, res, next) => {
+  // when user is logged in, allow them to change password
+  const user = await User.findById(req.user._id).select('+password');
+  if (!req.user || !user) {
+    return next(
+      new AppError(
+        'Please login to change your password. something went wrong user not found',
+        401,
+      ),
+    );
+  }
+
+  const { oldPassword, password, passwordConfirm } = req.body;
+
+  if (!oldPassword)
+    return next(
+      new AppError(
+        'Provide old password to update new one. Did you forget the old password? Then reset your password.',
+        401,
+      ),
+    );
+
+  // check if password is correct
+  if (!(await user.verifyPassword(oldPassword, user.password))) {
+    const message =
+      'Incorrect password. Enter your old password to update the new one';
+    return next(new AppError(message, 401));
+  }
+
+  // update password
+  user.password = password;
+  user.passwordConfirm = passwordConfirm;
+  await user.save();
+
+  await createAndSendToken(user, 201, res);
+});
 
 // AUTHORIZE
 export const authorize = catchAsync(async (req, res, next) => {
