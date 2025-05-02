@@ -65,6 +65,14 @@ userSchema.pre('save', async function (next) {
   this.passwordConfirm = undefined;
 });
 
+// adding and instance method to confirm password
+userSchema.methods.verifyPassword = async function (
+  signInPasword,
+  userPassword,
+) {
+  return await bcrypt.compare(signInPasword, userPassword);
+};
+
 const User = mongoose.model('User', userSchema);
 
 export default User;

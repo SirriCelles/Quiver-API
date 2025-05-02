@@ -9,6 +9,7 @@ import {
   JWT_COOKIE_EXPIRES_IN,
   NODE_ENV,
 } from '../config/env.js';
+import AppError from '../utils/appError.js';
 
 const signToken = async (id) => {
   const token = await promisify(jwt.sign)({ id }, JWT_SECRET, {
@@ -57,7 +58,25 @@ export const signUp = catchAsync(async (req, res, next) => {
   await createAndSendToken(user, 201, res);
 });
 
-export const signIn = () => {};
+export const signIn = catchAsync(async (req, res, next) => {
+  // get user and check if email n password  exist
+  const { email, password } = req.body;
+  if (!email || !password) {
+    const message = 'Email or Passord not provided';
+    return next(new AppError(message, 400));
+  }
+
+  const user = await User.findOne({ email }).select('+password');
+
+  //get user from db and verify user password
+  if (!user || !(await user.verifyPassword(password, user.password))) {
+    const message = 'Incorrect email or password';
+    return next(new AppError(message, 401));
+  }
+
+  // log user in, attach user to req object
+  await createAndSendToken(user, 200, res);
+});
 export const forgotPassword = () => {};
 export const resetPassword = () => {};
 export const authorize = () => {};
