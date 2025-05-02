@@ -65,6 +65,13 @@ userSchema.pre('save', async function (next) {
   this.passwordConfirm = undefined;
 });
 
+userSchema.pre('save', function (next) {
+  if (!this.isModified('password') || this.isNew) return next();
+
+  this.passwordChangedAt = Date.now() - 1000;
+  next();
+});
+
 // adding and instance method to confirm password
 userSchema.methods.verifyPassword = async function (
   signInPasword,
@@ -84,6 +91,22 @@ userSchema.methods.checkForChangedPassword = async function (jwtTimestamp) {
   }
 
   return false;
+};
+
+userSchema.methods.createPasswordResetToken = async function () {
+  // use an 32 byte cryptographic random string
+  const resetToken = await crypto.randomBytes(32).toString('hex');
+
+  // encrypt resetToken
+  this.passwordResetToken = crypto
+    .createHash('sha256')
+    .update(resetToken)
+    .digest('hex');
+
+  // set password reset token to expire in 10minutes
+  this.passwordResetTokenExpires = Date.now() + 10 * 60 * 1000;
+
+  return resetToken;
 };
 
 const User = mongoose.model('User', userSchema);

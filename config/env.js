@@ -11,4 +11,8 @@ export const {
   JWT_SECRET,
   JWT_EXPIRES_IN,
   JWT_COOKIE_EXPIRES_IN,
+  EMAIL_NAME,
+  EMAIL_PASSWORD,
+  EMAIL_HOST,
+  EMAIL_PORT,
 } = process.env;
