@@ -46,9 +46,19 @@ const userSchema = mongoose.Schema({
     default: true,
     select: false,
   },
+  tags: [
+    {
+      type: String,
+    },
+  ],
+  verified: {
+    type: Boolean,
+    default: false,
+  },
   photo: {
     type: String,
   },
+  location: {},
 });
 
 userSchema.set('toJSON', {
