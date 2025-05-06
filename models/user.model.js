@@ -5,10 +5,6 @@ import crypto from 'crypto';
 import { SALT_ROUND } from '../config/env.js';
 
 const userSchema = mongoose.Schema({
-  name: {
-    type: String,
-    required: [true, 'Name is required'],
-  },
   email: {
     type: String,
     required: [true, 'Email is required'],
@@ -41,24 +37,66 @@ const userSchema = mongoose.Schema({
   passwordChangedAt: Date,
   passwordResetToken: String,
   passwordResetTokenExpires: Date,
+  profile: {
+    fullName: {
+      type: String,
+      required: [true, 'Fullname is required. Please provide your full name'],
+    },
+    imageName: String, //ImageName for when we use file system
+    imageUrl: String, //URL to S3/cloudinary image,
+    bio: String,
+    dateOfBirth: Date,
+    phone: {
+      type: String,
+      validate: [
+        validator.isMobilePhone,
+        'Please provide a valide phone number',
+      ],
+    },
+  },
+  location: {
+    type: {
+      type: String,
+      default: 'Point',
+      enum: ['Point'],
+    },
+    coordinates: {
+      //GeoJSON format [long, lat]
+      type: [Number],
+      required: true,
+      index: '2dshpere', //Geospatial index
+    },
+  },
+  preferences: {
+    tags: [String],
+    language: {
+      type: String,
+      default: 'en',
+      enum: ['en', 'fr'],
+    },
+    notificationsEnabled: {
+      type: Boolean,
+      default: true,
+    },
+  },
+  verification: {
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
+    verifiedAt: Date,
+    govIdNumber: Number,
+    govIdUrlName: String,
+    govIdUrl: String,
+    driverIdNumber: Number,
+    driverIdUrlName: String,
+    driverIdUrl: String,
+  },
   active: {
     type: Boolean,
     default: true,
     select: false,
   },
-  tags: [
-    {
-      type: String,
-    },
-  ],
-  verified: {
-    type: Boolean,
-    default: false,
-  },
-  photo: {
-    type: String,
-  },
-  location: {},
 });
 
 userSchema.set('toJSON', {
