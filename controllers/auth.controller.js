@@ -52,6 +52,11 @@ const createAndSendToken = async (user, statusCode, res) => {
   });
 };
 
+/**
+ * @desc    User can sign up
+ * @route   POST /api/v1/auth/signup
+ * @access  Public
+ */
 export const signUp = catchAsync(async (req, res, next) => {
   // get user info from req body
   const user = await User.create({
@@ -65,6 +70,11 @@ export const signUp = catchAsync(async (req, res, next) => {
   await createAndSendToken(user, 201, res);
 });
 
+/**
+ * @desc    Login In users
+ * @route   POST /api/v1/auth/login
+ * @access  Public
+ */
 export const signIn = catchAsync(async (req, res, next) => {
   // get user and check if email n password  exist
   const { email, password } = req.body;
@@ -85,6 +95,11 @@ export const signIn = catchAsync(async (req, res, next) => {
   await createAndSendToken(user, 200, res);
 });
 
+/**
+ * @desc    Forgot password
+ * @route   POST /api/v1/auth/forgot-password
+ * @access  Public
+ */
 export const forgotPassword = catchAsync(async (req, res, next) => {
   // 1- Get user based on req email
   const user = await User.findOne({ email: req.body.email });
@@ -132,6 +147,11 @@ export const forgotPassword = catchAsync(async (req, res, next) => {
   });
 });
 
+/**
+ * @desc    Set a new password via reset link
+ * @route   PATCH /api/v1/auth/reset-password
+ * @access  Public
+ */
 export const resetPassword = catchAsync(async (req, res, next) => {
   // get user based on reset token
   const resetToken = req.params.token;
@@ -166,6 +186,11 @@ export const resetPassword = catchAsync(async (req, res, next) => {
   await createAndSendToken(user, 200, res);
 });
 
+/**
+ * @desc    User can update their password
+ * @route   PATCH /api/v1/auth/change-password
+ * @access  Private
+ */
 export const updatePassword = catchAsync(async (req, res, next) => {
   // when user is logged in, allow them to change password
   const user = await User.findById(req.user._id).select('+password');

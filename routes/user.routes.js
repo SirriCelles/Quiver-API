@@ -1,6 +1,10 @@
 import express from 'express';
-import { authorize } from '../controllers/auth.controller.js';
-import { getCurrentUser } from '../controllers/user.controller.js';
+import { authorize, restrictTo } from '../controllers/auth.controller.js';
+import {
+  getCurrentUser,
+  updateCurrentUser,
+} from '../controllers/user.controller.js';
+import validateUpdateUser from '../services/userValidator.service.js';
 
 const router = express.Router();
 
@@ -10,7 +14,12 @@ router.use(authorize);
 
 router
   .route('/me')
-  .get(getCurrentUser) //Get USER profile
-  .patch(); //Update USER profile
+  .get(authorize, getCurrentUser) //Get USER profile
+  .patch(
+    authorize,
+    restrictTo(['user', 'escort']),
+    validateUpdateUser,
+    updateCurrentUser,
+  ); //Update USER profile
 
 router.route('/me/location').put(); //Update user location lat/lng

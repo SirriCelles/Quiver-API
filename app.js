@@ -13,6 +13,7 @@ import xss from 'xss-clean';
 import { NODE_ENV } from './config/env.js';
 
 import authRouter from './routes/auth.routes.js';
+import userRouter from './routes/user.routes.js';
 import swaggerOptions from './utils/swaggerOptions.js';
 import globalErrorHandler from './controllers/error.controller.js';
 import AppError from './utils/appError.js';
@@ -65,6 +66,8 @@ const specs = swaggerJSDoc(swaggerOptions);
 
 // ROUTES
 app.use('/api/v1/auth', authRouter);
+
+app.use('/api/v1/users', userRouter);
 
 // Serve Swagger UI at /api-docs
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));

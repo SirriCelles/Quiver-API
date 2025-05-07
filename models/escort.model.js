@@ -66,7 +66,7 @@ const escortSchema = mongoose.Schema({
 
 // for any find method, get query including these fields
 escortSchema.pre(/^find/, function (next) {
-  this.select('services availability availability stats');
+  this.select('services availability stats');
 
   next();
 });

@@ -42,9 +42,9 @@ const userSchema = mongoose.Schema({
       type: String,
       required: [true, 'Fullname is required. Please provide your full name'],
     },
+    bio: String,
     imageName: String, //ImageName for when we use file system
     imageUrl: String, //URL to S3/cloudinary image,
-    bio: String,
     dateOfBirth: Date,
     phone: {
       type: String,
