@@ -85,12 +85,15 @@ const userSchema = mongoose.Schema({
       default: false,
     },
     verifiedAt: Date,
+  },
+  verificationDocs: {
     govIdNumber: Number,
     govIdUrlName: String,
     govIdUrl: String,
     driverIdNumber: Number,
     driverIdUrlName: String,
     driverIdUrl: String,
+    select: false,
   },
   active: {
     type: Boolean,
@@ -102,6 +105,11 @@ const userSchema = mongoose.Schema({
 userSchema.set('toJSON', {
   virtuals: true,
   versionKey: false,
+});
+
+userSchema.pre(/^find/, function (next) {
+  this.select('-__v');
+  next();
 });
 
 userSchema.pre('save', async function (next) {
