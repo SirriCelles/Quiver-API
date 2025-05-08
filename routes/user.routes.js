@@ -17,9 +17,11 @@ router
   .get(authorize, getCurrentUser) //Get USER profile
   .patch(
     authorize,
-    restrictTo(['user', 'escort']),
+    restrictTo('user', 'escort'),
     validateUpdateUser,
     updateCurrentUser,
   ); //Update USER profile
 
 router.route('/me/location').put(); //Update user location lat/lng
+
+export default router;

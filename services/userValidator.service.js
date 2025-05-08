@@ -1,5 +1,6 @@
 import Joi from 'joi';
 import AppError from '../utils/appError.js';
+import catchAsync from '../utils/catchError.js';
 
 const updateSchema = Joi.object({
   profile: Joi.object({
@@ -14,16 +15,20 @@ const updateSchema = Joi.object({
     Joi.object({
       name: Joi.string().valid('tour_guide', 'dining', 'adventure'),
       hourlyRate: Joi.number().min(5),
+      description: Joi.string(),
     }),
   ),
 }).unknown(false);
 
-const validateUpdateUser = (req, res, next) => {
+const validateUpdateUser = catchAsync(async (req, res, next) => {
   const { error } = updateSchema.validate(req.body);
 
-  if (error) return new AppError(error.details[0].message);
+  if (error) {
+    const msg = error.details[0].message;
+    return next(new AppError(msg, 400));
+  }
 
   next();
-};
+});
 
 export default validateUpdateUser;

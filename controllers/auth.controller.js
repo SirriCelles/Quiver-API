@@ -12,7 +12,6 @@ import {
 } from '../config/env.js';
 import AppError from '../utils/appError.js';
 import sendEMail from '../utils/email.js';
-import { equal } from 'assert';
 
 const signToken = async (id) => {
   const token = await promisify(jwt.sign)({ id }, JWT_SECRET, {
@@ -60,10 +59,11 @@ const createAndSendToken = async (user, statusCode, res) => {
 export const signUp = catchAsync(async (req, res, next) => {
   // get user info from req body
   const user = await User.create({
-    name: req.body.name,
+    profile: req.body.profile,
     email: req.body.email,
     password: req.body.password,
     passwordConfirm: req.body.passwordConfirm,
+    // isEscort: req.body.isEscort,
   });
 
   // hash pasword and authenticate user

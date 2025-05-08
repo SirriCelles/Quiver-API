@@ -30,13 +30,15 @@ export const getCurrentUser = catchAsync(async (req, res, next) => {
   const user = await User.findById(req.user.id).lean();
 
   if (!user) {
-    return new AppError('User not found', 404);
+    return next(new AppError('User not found', 404));
   }
 
   // Role based data filtering
   let responseData;
   if (user.role === 'escort') {
-    const escortProfile = getEscortProfile(user._id);
+    // const escortProfile = await getEscortProfile(user._id);
+
+    const escortProfile = await Escort.findOne({ _userRef: user._id }).lean();
     responseData = { ...user, ...escortProfile };
   } else {
     responseData = user;
@@ -50,7 +52,7 @@ export const getCurrentUser = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: 'success',
     data: {
-      responseData,
+      data: responseData,
     },
   });
 });
@@ -84,17 +86,17 @@ export const updateCurrentUser = catchAsync(async (req, res, next) => {
   );
 
   if (!user) {
-    return new AppError('User update failed, User not found', 404);
+    return next(new AppError('User update failed, User not found', 404));
   }
 
   // Handle Escort-Specific Update
   let escortData;
   if (
     user.role === 'escort' &&
-    (updates.services || updates.availabilit || updates.tags)
+    (updates.services || updates.availability || updates.tags)
   ) {
     escortData = await Escort.findByIdAndUpdate(
-      { userRef: user._id },
+      { _userRef: user._id },
       { $set: updates },
       { new: true, runValidators: true },
     );
@@ -104,12 +106,14 @@ export const updateCurrentUser = catchAsync(async (req, res, next) => {
   const response = {
     status: 'success',
     data: {
-      ...user.toObject(),
-      ...(escortData ? escortData.toObject() : {}),
-      location: {
-        //convert back to client format
-        lat: user.location.coordinates[1],
-        lng: user.location.coordinates[0],
+      data: {
+        ...user.toObject(),
+        ...(escortData ? escortData.toObject() : {}),
+        location: {
+          //convert back to client format
+          lat: user.location.coordinates[1],
+          lng: user.location.coordinates[0],
+        },
       },
     },
   };

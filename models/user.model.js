@@ -4,103 +4,114 @@ import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import { SALT_ROUND } from '../config/env.js';
 
-const userSchema = mongoose.Schema({
-  email: {
-    type: String,
-    required: [true, 'Email is required'],
-    unique: [true, 'Duplicate Email not allowed'],
-    lowercase: true,
-    validate: [validator.isEmail, 'Please provide a valid Email'],
-  },
-  role: {
-    type: String,
-    enum: ['admin', 'user', 'escort'],
-    default: 'user',
-  },
-  password: {
-    type: String,
-    required: [true, 'Please provide a password'],
-    minlength: [8, 'Password must be greater than 8 characters'],
-    select: false,
-  },
-  passwordConfirm: {
-    type: String,
-    required: [true, 'Please confirm your password'],
-    validate: {
-      validator: function (el) {
-        return el === this.password;
+const userSchema = mongoose.Schema(
+  {
+    email: {
+      type: String,
+      required: [true, 'Email is required'],
+      unique: [true, 'Duplicate Email not allowed'],
+      lowercase: true,
+      validate: [validator.isEmail, 'Please provide a valid Email'],
+    },
+    role: {
+      type: String,
+      enum: ['admin', 'user', 'escort'],
+      default: 'user',
+    },
+    password: {
+      type: String,
+      required: [true, 'Please provide a password'],
+      minlength: [8, 'Password must be greater than 8 characters'],
+      select: false,
+    },
+    passwordConfirm: {
+      type: String,
+      required: [true, 'Please confirm your password'],
+      validate: {
+        validator: function (el) {
+          return el === this.password;
+        },
+        message: 'Password mismatch, confirm your password',
       },
-      message: 'Password mismatch, confirm your password',
+      select: false,
     },
-    select: false,
-  },
-  passwordChangedAt: Date,
-  passwordResetToken: String,
-  passwordResetTokenExpires: Date,
-  profile: {
-    fullName: {
-      type: String,
-      required: [true, 'Fullname is required. Please provide your full name'],
+    passwordChangedAt: Date,
+    passwordResetToken: String,
+    passwordResetTokenExpires: Date,
+    profile: {
+      fullName: {
+        type: String,
+        required: [true, 'Fullname is required. Please provide your full name'],
+      },
+      bio: String,
+      imageName: String, //ImageName for when we use file system
+      imageUrl: String, //URL to S3/cloudinary image,
+      dateOfBirth: Date,
+      phone: {
+        type: String,
+        validate: [
+          validator.isMobilePhone,
+          'Please provide a valide phone number',
+        ],
+      },
     },
-    bio: String,
-    imageName: String, //ImageName for when we use file system
-    imageUrl: String, //URL to S3/cloudinary image,
-    dateOfBirth: Date,
-    phone: {
-      type: String,
-      validate: [
-        validator.isMobilePhone,
-        'Please provide a valide phone number',
-      ],
+    location: {
+      type: {
+        type: String,
+        default: 'Point',
+        enum: ['Point'],
+      },
+      coordinates: {
+        //GeoJSON format [long, lat]
+        type: [Number],
+        required: true,
+        index: '2dshpere', //Geospatial index
+      },
     },
-  },
-  location: {
-    type: {
-      type: String,
-      default: 'Point',
-      enum: ['Point'],
+    preferences: {
+      tags: [String],
+      language: {
+        type: String,
+        default: 'en',
+        enum: ['en', 'fr'],
+      },
+      notificationsEnabled: {
+        type: Boolean,
+        default: true,
+      },
     },
-    coordinates: {
-      //GeoJSON format [long, lat]
-      type: [Number],
-      required: true,
-      index: '2dshpere', //Geospatial index
+    verification: {
+      isVerified: {
+        type: Boolean,
+        default: false,
+      },
+      verifiedAt: Date,
     },
-  },
-  preferences: {
-    tags: [String],
-    language: {
-      type: String,
-      default: 'en',
-      enum: ['en', 'fr'],
+    verificationDocs: {
+      govIdNumber: Number,
+      govIdUrlName: String,
+      govIdUrl: String,
+      driverIdNumber: Number,
+      driverIdUrlName: String,
+      driverIdUrl: String,
     },
-    notificationsEnabled: {
+    active: {
+      type: Boolean,
+      default: true,
+      select: false,
+    },
+    termsAndConditions: {
       type: Boolean,
       default: true,
     },
-  },
-  verification: {
-    isVerified: {
+    isEscort: {
       type: Boolean,
       default: false,
+      select: false,
     },
-    verifiedAt: Date,
   },
-  verificationDocs: {
-    govIdNumber: Number,
-    govIdUrlName: String,
-    govIdUrl: String,
-    driverIdNumber: Number,
-    driverIdUrlName: String,
-    driverIdUrl: String,
-    select: false,
-  },
-  active: {
-    type: Boolean,
-    default: true,
-    select: false,
-  },
-});
+  { timestamp: true },
+);
 
 userSchema.set('toJSON', {
   virtuals: true,
@@ -108,9 +119,15 @@ userSchema.set('toJSON', {
 });
 
 userSchema.pre(/^find/, function (next) {
-  this.select('-__v');
+  this.select('-__v -verificationDocs');
   next();
 });
+
+// userSchema.pre('save', function (next) {
+//   if (!this.isEscort) return next();
+//   this.role = 'escort';
+//   next();
+// });
 
 userSchema.pre('save', async function (next) {
   // check if password has not been modified(in that case we do not need to hash) then skip
