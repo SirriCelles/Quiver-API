@@ -104,13 +104,8 @@ const userSchema = mongoose.Schema(
       type: Boolean,
       default: true,
     },
-    isEscort: {
-      type: Boolean,
-      default: false,
-      select: false,
-    },
   },
-  { timestamp: true },
+  { timestamps: true },
 );
 
 userSchema.set('toJSON', {
@@ -122,12 +117,6 @@ userSchema.pre(/^find/, function (next) {
   this.select('-__v -verificationDocs');
   next();
 });
-
-// userSchema.pre('save', function (next) {
-//   if (!this.isEscort) return next();
-//   this.role = 'escort';
-//   next();
-// });
 
 userSchema.pre('save', async function (next) {
   // check if password has not been modified(in that case we do not need to hash) then skip

@@ -4,7 +4,7 @@ const escortSchema = mongoose.Schema(
   {
     //  inherits all User fields via application logic
     _userRef: {
-      type: Schema.Types.ObjectId,
+      type: mongoose.Schema.ObjectId,
       ref: 'User',
       required: [
         true,
@@ -67,7 +67,7 @@ const escortSchema = mongoose.Schema(
       responseTime: Number, //Average in minutes
     },
   },
-  { timestamp: true },
+  { timestamps: true },
 );
 
 // for any find method, get query including these fields

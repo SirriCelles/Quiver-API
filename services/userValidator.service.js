@@ -18,6 +18,18 @@ const updateSchema = Joi.object({
       description: Joi.string(),
     }),
   ),
+  availability: Joi.array().items(
+    Joi.object({
+      day: Joi.string().valid('mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'),
+      slots: Joi.array().items(
+        Joi.object({
+          start: Joi.date(),
+          end: Joi.date(),
+        }),
+      ),
+    }),
+  ),
+  tags: Joi.array(),
 }).unknown(false);
 
 const validateUpdateUser = catchAsync(async (req, res, next) => {

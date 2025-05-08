@@ -12,3 +12,17 @@ export const getEscortProfile = (userId) =>
 
     return escort;
   });
+
+export const proccessedAvailability = (availability) => {
+  const proccessedValue = availability.map((day) => {
+    return {
+      day: day.day,
+      slots: day.slots.map((slot) => ({
+        start: new Date(slot.start),
+        end: new Date(slot.start),
+      })),
+    };
+  });
+
+  return proccessedValue;
+};

@@ -1,6 +1,7 @@
 import express from 'express';
 import { authorize, restrictTo } from '../controllers/auth.controller.js';
 import {
+  createEscortProfile,
   getCurrentUser,
   updateCurrentUser,
 } from '../controllers/user.controller.js';
@@ -21,6 +22,10 @@ router
     validateUpdateUser,
     updateCurrentUser,
   ); //Update USER profile
+
+router
+  .route('/escort/profile')
+  .post(authorize, validateUpdateUser, createEscortProfile);
 
 router.route('/me/location').put(); //Update user location lat/lng
 
