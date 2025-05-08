@@ -43,7 +43,7 @@ const createAndSendToken = async (user, statusCode, res) => {
   user.password = undefined;
 
   res.status(statusCode).json({
-    status: statusCode === 200 || statusCode === 201 ? 'success' : 'failed',
+    status: statusCode === 200 || statusCode === 201 ? 'success' : 'error',
     token,
     data: {
       user,
@@ -128,7 +128,6 @@ export const forgotPassword = catchAsync(async (req, res, next) => {
       message,
     });
   } catch (error) {
-    console.log(error);
     user.passwordResetToken = undefined;
     user.passwordResetTokenExpires = undefined;
     await user.save({ validateBeforeSave: false });

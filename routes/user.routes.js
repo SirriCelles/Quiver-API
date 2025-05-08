@@ -27,6 +27,6 @@ router
   .route('/escort/profile')
   .post(authorize, validateUpdateUser, createEscortProfile);
 
-router.route('/me/location').put(); //Update user location lat/lng
+router.route('/:id').get();
 
 export default router;

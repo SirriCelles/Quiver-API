@@ -58,6 +58,57 @@ export const getCurrentUser = catchAsync(async (req, res, next) => {
 });
 
 /**
+ * @desc    Create escort profile
+ * @route   POST /api/user/escort/profile
+ * @access  Private (User must be authenticated)
+ */
+
+export const createEscortProfile = catchAsync(async (req, res, next) => {
+  const userId = req.user.id;
+  // verify user exist and isn't already an escort
+  const user = await User.findById(userId);
+
+  if (!user) return next(new AppError('User not found', 404));
+
+  if (user.role === 'escort') {
+    return next(
+      new AppError(
+        'Escort Profile already exist. please go to profile and update instead',
+        400,
+      ),
+    );
+  }
+
+  // validate required fields
+  const { services, availability, tags } = req.body;
+
+  if (!services || !availability) {
+    return next(new AppError('Please fill out the services section', 400));
+  }
+
+  const escortProfile = await Escort.create({
+    _userRef: userId,
+    services,
+    availability,
+    tags,
+  });
+
+  user.role = 'escort';
+
+  await user.save();
+
+  res.status(201).json({
+    status: 'success',
+    data: {
+      data: {
+        ...user.toObject(),
+        escortProfile,
+      },
+    },
+  });
+});
+
+/**
  * @desc    Update current user's profile
  * @route   PATCH /api/v1/users/me
  * @access  Private
@@ -121,55 +172,4 @@ export const updateCurrentUser = catchAsync(async (req, res, next) => {
   };
 
   res.status(200).json(response);
-});
-
-/**
- * @desc    Create escort profile
- * @route   POST /api/user/escort/profile
- * @access  Private (User must be authenticated)
- */
-
-export const createEscortProfile = catchAsync(async (req, res, next) => {
-  const userId = req.user.id;
-  // verify user exist and isn't already an escort
-  const user = await User.findById(userId);
-
-  if (!user) return next(new AppError('User not found', 404));
-
-  if (user.role === 'escort') {
-    return next(
-      new AppError(
-        'Escort Profile already exist. please go to profile and update instead',
-        400,
-      ),
-    );
-  }
-
-  // validate required fields
-  const { services, availability, tags } = req.body;
-
-  if (!services || !availability) {
-    return next(new AppError('Please fill out the services section', 400));
-  }
-
-  const escortProfile = await Escort.create({
-    _userRef: userId,
-    services,
-    availability,
-    tags,
-  });
-
-  user.role = 'escort';
-
-  await user.save();
-
-  res.status(201).json({
-    status: 'success',
-    data: {
-      data: {
-        ...user.toObject(),
-        escortProfile,
-      },
-    },
-  });
 });

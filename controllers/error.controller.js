@@ -15,7 +15,7 @@ const sendProductionError = (err, res) => {
   if (err.isOperational) {
     res.status(err.statusCode).json({
       status: err.status,
-      message: err.message,
+      message: err.message ? err.message : err.errorMessage,
     });
   } else {
     // log error
@@ -50,6 +50,11 @@ const handleValidationErrorDB = (err) => {
   return new AppError(message, 400);
 };
 
+// Handle Mongoose Error
+const handleMongooseError = (err) => {
+  return new AppError(err.message, err.statusCode || 500);
+};
+
 //
 const handleJWTError = () =>
   new AppError('Invalid token. Please login again', 401);
@@ -72,6 +77,7 @@ const globalErrorHandler = (err, req, res, next) => {
     if (err.name === 'ValidationError') error = handleValidationErrorDB(error);
     if (err.name === 'JsonWebTokenError') error = handleJWTError();
     if (err.name === 'TokenExpiredError') error = handleTokenExpiredError();
+    if (err.stack.startsWith('MongooseError')) error = handleMongooseError(err);
 
     sendProductionError(error, res);
   }
