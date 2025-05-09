@@ -4,6 +4,7 @@ import User from '../models/user.model.js';
 import AppError from '../utils/appError.js';
 import catchAsync from '../utils/catchError.js';
 import { sanitizeObject } from '../utils/sanitize.js';
+import { calculateAge } from '../utils/utility.js';
 
 const formatLocation = (location) => {
   const locat = {
@@ -172,4 +173,70 @@ export const updateCurrentUser = catchAsync(async (req, res, next) => {
   };
 
   res.status(200).json(response);
+});
+
+/**
+ * @desc    Get user by ID (public profile view)
+ * @route   GET /api/v1/users/:id
+ * @access  Public (with restricted data for non-authenticated users)
+ */
+export const getUserById = catchAsync(async (req, res, next) => {
+  const { id } = req.params;
+
+  // Validate ObjectId
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return next(new AppError('Invalid user ID', 400));
+  }
+
+  // Fetch user data
+  const user = await User.findById(id).lean();
+
+  if (!user) {
+    return next(new AppError('User not found', 404));
+  }
+
+  // Format location data for client
+  if (user.location?.coordinates) {
+    user.location = formatLocation(user.location);
+  }
+
+  const publicProfile = {
+    id: user._id,
+    aga: calculateAge(user.profile?.dateOfBirth) || null,
+    profile: {
+      fullName: user.profile.fullName,
+      bio: user.profile.bio,
+      dateOfBirth: user.profile.dateOfBirth,
+      gender: user.profile.gender,
+      imageName: user.profile.imageName,
+      imageUrl: user.profile.imageUrl,
+    },
+    role: user.role,
+    createdAt: user.createdAt,
+    preferences: user.preferences,
+  };
+
+  // If User is viewing thier profile or that of an escort
+  if (req.user.id === id || user.role === 'escort') {
+    publicProfile.location = user.location;
+  }
+
+  // Add escort specific data if user is an escort
+  if (user.role === 'escort') {
+    const escortProfile = await Escort.findOne({ _userRef: id }).lean();
+
+    publicProfile.escortProfile = {
+      services: escortProfile.services,
+      tags: escortProfile?.tags,
+      availability: escortProfile.availability,
+      stats: escortProfile?.stats || { completeBookings: 0 },
+    };
+  }
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      data: publicProfile,
+    },
+  });
 });

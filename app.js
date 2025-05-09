@@ -9,6 +9,7 @@ import helmet from 'helmet';
 import expressMongoSanitize from 'express-mongo-sanitize';
 import xss from 'xss-clean';
 // import hpp from 'hpp';
+import cors from 'cors';
 
 import { NODE_ENV } from './config/env.js';
 
@@ -19,6 +20,9 @@ import globalErrorHandler from './controllers/error.controller.js';
 import AppError from './utils/appError.js';
 
 const app = express();
+
+// Enable CORS for all routes
+app.use(cors());
 
 // set security HTTP headers
 app.use(helmet());
