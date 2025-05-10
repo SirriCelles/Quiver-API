@@ -4,16 +4,11 @@ import User from '../models/user.model.js';
 import AppError from '../utils/appError.js';
 import catchAsync from '../utils/catchError.js';
 import { sanitizeObject } from '../utils/sanitize.js';
-import { calculateAge } from '../utils/utility.js';
-
-const formatLocation = (location) => {
-  const locat = {
-    lat: location.coordinates[1],
-    lng: location.coordinates[0],
-  };
-
-  return locat;
-};
+import {
+  calculateAge,
+  formatLocationToClient,
+  formatLocationToGeoJson,
+} from '../utils/utility.js';
 
 export const createUser = async (req, res) => {
   res.status(500).json({
@@ -47,13 +42,13 @@ export const getCurrentUser = catchAsync(async (req, res, next) => {
 
   // Format location data for client
   if (user.location?.coordinates) {
-    responseData.location = formatLocation(user.location);
+    responseData.location = formatLocationToClient(user.location);
   }
 
   res.status(200).json({
     status: 'success',
     data: {
-      data: responseData,
+      ...responseData,
     },
   });
 });
@@ -69,42 +64,47 @@ export const createEscortProfile = catchAsync(async (req, res, next) => {
   // verify user exist and isn't already an escort
   const user = await User.findById(userId);
 
-  if (!user) return next(new AppError('User not found', 404));
+  if (!user)
+    return next(new AppError('You must sign up to become an escort', 404));
 
-  if (user.role === 'escort') {
-    return next(
-      new AppError(
-        'Escort Profile already exist. please go to profile and update instead',
-        400,
-      ),
-    );
-  }
+  const {
+    role,
+    password,
+    passwordConfirm,
+    verification,
+    stats,
+    ...safeUpdates
+  } = req.body;
+
+  // Sanitize input (remove undefined/empty values)
+  let updates = sanitizeObject(safeUpdates);
+
+  updates.role = 'escort';
 
   // validate required fields
   const { services, availability, tags } = req.body;
 
-  if (!services || !availability) {
+  if (!services) {
     return next(new AppError('Please fill out the services section', 400));
   }
+
+  const updatedUser = await User.findByIdAndUpdate(userId, updates, {
+    new: true,
+    runValidators: true,
+  }).lean();
 
   const escortProfile = await Escort.create({
     _userRef: userId,
     services,
     availability,
     tags,
-  });
-
-  user.role = 'escort';
-
-  await user.save();
+  }).lean();
 
   res.status(201).json({
     status: 'success',
     data: {
-      data: {
-        ...user.toObject(),
-        escortProfile,
-      },
+      ...updatedUser,
+      ...escortProfile,
     },
   });
 });
@@ -116,59 +116,50 @@ export const createEscortProfile = catchAsync(async (req, res, next) => {
  */
 export const updateCurrentUser = catchAsync(async (req, res, next) => {
   // Do not allow direct role/password update via this endpoint
-  const { role, password, passwordConfirm, verification, ...safeUpdates } =
-    req.body;
+  const {
+    role,
+    password,
+    passwordConfirm,
+    verification,
+    stats,
+    ...safeUpdates
+  } = req.body;
 
   // Sanitize input (remove undefined/empty values)
   let updates = sanitizeObject(safeUpdates);
-
-  // Handle location format conversion (lat/lng -> GeoJSON )
-  if (updates.location) {
-    updates.location = {
-      type: 'Point',
-      coordinates: [updates.location.lng, updates.location.lat],
-    };
-  }
 
   // Update base user document
   const user = await User.findByIdAndUpdate(req.user.id, updates, {
     new: true,
     runValidators: true,
-  });
+  }).lean();
 
   if (!user) {
     return next(new AppError('User update failed, User not found', 404));
   }
 
   // Handle Escort-Specific Update
-  let escortData;
+  let escortProfile;
   if (
     user.role === 'escort' &&
     (updates.services || updates.availability || updates.tags)
   ) {
-    escortData = await Escort.findOneAndUpdate(
+    escortProfile = await Escort.findOneAndUpdate(
       { _userRef: user._id },
       updates,
       {
         new: true,
         runValidators: true,
       },
-    );
+    ).lean();
   }
 
   // response
   const response = {
     status: 'success',
     data: {
-      data: {
-        ...user.toObject(),
-        ...(escortData ? escortData.toObject() : {}),
-        location: {
-          //convert back to client format
-          lat: user.location.coordinates[1],
-          lng: user.location.coordinates[0],
-        },
-      },
+      ...user,
+      ...escortProfile,
     },
   };
 
@@ -181,23 +172,16 @@ export const updateCurrentUser = catchAsync(async (req, res, next) => {
  * @access  Public (with restricted data for non-authenticated users)
  */
 export const getUserById = catchAsync(async (req, res, next) => {
-  const { id } = req.params;
-
   // Validate ObjectId
-  if (!mongoose.Types.ObjectId.isValid(id)) {
+  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
     return next(new AppError('Invalid user ID', 400));
   }
 
   // Fetch user data
-  const user = await User.findById(id).lean();
+  const user = await User.findById(req.params.id).lean();
 
   if (!user) {
     return next(new AppError('User not found', 404));
-  }
-
-  // Format location data for client
-  if (user.location?.coordinates) {
-    user.location = formatLocation(user.location);
   }
 
   const publicProfile = {
@@ -217,13 +201,15 @@ export const getUserById = catchAsync(async (req, res, next) => {
   };
 
   // If User is viewing thier profile or that of an escort
-  if (req.user.id === id || user.role === 'escort') {
+  if (user.role === 'escort') {
     publicProfile.location = user.location;
   }
 
   // Add escort specific data if user is an escort
   if (user.role === 'escort') {
-    const escortProfile = await Escort.findOne({ _userRef: id }).lean();
+    const escortProfile = await Escort.findOne({
+      _userRef: req.params.id,
+    }).lean();
 
     publicProfile.escortProfile = {
       services: escortProfile.services,
@@ -236,7 +222,7 @@ export const getUserById = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: 'success',
     data: {
-      data: publicProfile,
+      publicProfile,
     },
   });
 });

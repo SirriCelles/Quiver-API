@@ -6,7 +6,13 @@ const updateSchema = Joi.object({
   profile: Joi.object({
     fullName: Joi.string().min(2),
     bio: Joi.string().max(500).allow(''),
-  }).unknown(false),
+    imageName: Joi.string().allow(''),
+    imageUrl: Joi.string().allow(''),
+    dateOfBirth: Joi.date().max('now').messages({
+      'date.max': 'Date of birth cannot be in the future',
+    }),
+    gender: Joi.string().valid('male', 'female', 'other', 'prefer not to say'),
+  }).unknown(true),
   location: Joi.object({
     lat: Joi.number().min(-90).max(90).required(),
     lng: Joi.number().min(-180).max(180).required(),
@@ -30,7 +36,7 @@ const updateSchema = Joi.object({
     }),
   ),
   tags: Joi.array(),
-}).unknown(false);
+}).unknown(true);
 
 const validateUpdateUser = catchAsync(async (req, res, next) => {
   const { error } = updateSchema.validate(req.body);

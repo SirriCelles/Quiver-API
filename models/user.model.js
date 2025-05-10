@@ -47,17 +47,9 @@ const userSchema = mongoose.Schema(
       imageName: String, //ImageName for when we use file system
       imageUrl: String, //URL to S3/cloudinary image,
       dateOfBirth: Date,
-      phone: {
-        type: String,
-        validate: [
-          validator.isMobilePhone,
-          'Please provide a valide phone number',
-        ],
-      },
-      dateOfBirth: Date,
       gender: {
         type: String,
-        enum: ['Male', 'Female', 'Other'],
+        enum: ['male', 'female', 'other', 'prefer not to say'],
       },
     },
     location: {
@@ -100,6 +92,13 @@ const userSchema = mongoose.Schema(
       driverIdUrlName: String,
       driverIdUrl: String,
     },
+    phone: {
+      type: String,
+      validate: [
+        validator.isMobilePhone,
+        'Please provide a valide phone number',
+      ],
+    },
     active: {
       type: Boolean,
       default: true,
@@ -136,6 +135,17 @@ userSchema.pre('save', function (next) {
   if (!this.isModified('password') || this.isNew) return next();
 
   this.passwordChangedAt = Date.now() - 1000;
+  next();
+});
+
+userSchema.pre('save', function (next) {
+  if (this.isModified('location') && this.location?.lat) {
+    // convert location to GeoJSON format
+    this.location = {
+      type: 'Point',
+      coordinates: [this.location.lng, this.location.lat],
+    };
+  }
   next();
 });
 
