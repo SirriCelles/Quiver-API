@@ -9,6 +9,7 @@ import {
   formatLocationToClient,
   formatLocationToGeoJson,
 } from '../utils/utility.js';
+import { getAllResource } from './handleFactory.js';
 
 export const createUser = async (req, res) => {
   res.status(500).json({
@@ -55,7 +56,7 @@ export const getCurrentUser = catchAsync(async (req, res, next) => {
 
 /**
  * @desc    Create escort profile
- * @route   POST /api/user/escort/profile
+ * @route   POST /api/escorts/profile
  * @access  Private (User must be authenticated)
  */
 
@@ -186,7 +187,7 @@ export const getUserById = catchAsync(async (req, res, next) => {
 
   const publicProfile = {
     id: user._id,
-    aga: calculateAge(user.profile?.dateOfBirth) || null,
+    age: calculateAge(user.profile?.dateOfBirth) || null,
     profile: {
       fullName: user.profile.fullName,
       bio: user.profile.bio,
@@ -226,3 +227,5 @@ export const getUserById = catchAsync(async (req, res, next) => {
     },
   });
 });
+
+export const getAllUsers = getAllResource('User');

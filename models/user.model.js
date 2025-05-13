@@ -70,7 +70,6 @@ const userSchema = mongoose.Schema(
       language: {
         type: String,
         default: 'en',
-        enum: ['en', 'fr'],
       },
       notificationsEnabled: {
         type: Boolean,
@@ -118,7 +117,7 @@ userSchema.set('toJSON', {
 });
 
 userSchema.pre(/^find/, function (next) {
-  this.select('-__v -verificationDocs');
+  this.select('-__v -verificationDocs -phone');
   next();
 });
 

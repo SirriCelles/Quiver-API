@@ -1,7 +1,7 @@
 import express from 'express';
 import { authorize, restrictTo } from '../controllers/auth.controller.js';
 import {
-  createEscortProfile,
+  getAllUsers,
   getCurrentUser,
   getUserById,
   updateCurrentUser,
@@ -26,8 +26,6 @@ router
     updateCurrentUser,
   ); //Update USER profile
 
-router
-  .route('/escort/profile')
-  .post(authorize, validateUpdateUser, createEscortProfile);
+router.route('/').get(restrictTo('admin'), getAllUsers); //Get all users
 
 export default router;

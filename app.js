@@ -15,6 +15,7 @@ import { NODE_ENV } from './config/env.js';
 
 import authRouter from './routes/auth.routes.js';
 import userRouter from './routes/user.routes.js';
+import escortRouter from './routes/escort.routes.js';
 import swaggerOptions from './utils/swaggerOptions.js';
 import globalErrorHandler from './controllers/error.controller.js';
 import AppError from './utils/appError.js';
@@ -72,6 +73,8 @@ const specs = swaggerJSDoc(swaggerOptions);
 app.use('/api/v1/auth', authRouter);
 
 app.use('/api/v1/users', userRouter);
+
+app.use('/api/v1/escorts', escortRouter);
 
 // Serve Swagger UI at /api-docs
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));

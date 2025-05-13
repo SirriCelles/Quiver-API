@@ -1,0 +1,209 @@
+{
+  "User": {
+    "email": "maria.guide@example.com",
+    "role": "escort",
+    "password": "somepassordthat",
+    "profile": {
+      "fullName": "Maria Rossi",
+      "bio": "Licensed tour guide in Rome since 2015",
+      "imageName": "maria.jpg",
+      "imageUrl": "https://s3.amazonaws.com/quiver-profiles/maria.jpg",
+      "dateOfBirth": "1985-07-30T00:00:00.000Z",
+      "gender": "Female"
+    },
+    "phone": "+393331234567",
+    "location": {
+      "type": "Point",
+      "coordinates": [12.4964, 41.9028]
+    },
+    "verification": {
+      "isVerified": true,
+      "verifiedAt": "2023-03-11T10:00:00.000Z"
+    },
+    "verificationDocs": {
+      "govIdNumber": 987654321,
+      "govIdUrl": "https://s3.amazonaws.com/quiver-ids/maria-id.jpg",
+      "driverIdUrl": "https://s3.amazonaws.com/quiver-ids/maria-license.jpg"
+    },
+    "preferences": {
+      "tags": ["history", "food", "art"],
+      "languages": ["en", "fr"]
+    },
+
+    "createdAt": "2023-03-10T11:50:00.000Z"
+  },
+  "Escort": {
+    "services": [
+      {
+        "name": "dining",
+        "hourlyRate": 40,
+        "description": "Local food experiences in cameroon"
+      }
+    ],
+    "availability": [
+      {
+        "day": "fri",
+        "slots": [
+          {
+            "start": "2023-06-23T18:00:00.000Z",
+            "end": "2023-06-23T23:00:00.000Z"
+          }
+        ]
+      },
+      {
+        "day": "sat",
+        "slots": [
+          {
+            "start": "2023-06-24T12:00:00.000Z",
+            "end": "2023-06-24T22:00:00.000Z"
+          }
+        ]
+      }
+    ],
+    "tags": ["food", "sushi", "nightlife"],
+    "stats": {
+      "completedBookings": 18,
+      "averageRating": 4.7,
+      "responseTime": 25
+    },
+    "createdAt": "2023-04-05T15:30:00.000Z",
+    "updatedAt": "2023-06-14T14:10:00.000Z"
+  },
+  "User": {
+    "email": "luca.history@example.com",
+    "role": "escort",
+    "password": "lucaR0me!2023",
+    "profile": {
+      "fullName": "Luca Bianchi",
+      "bio": "Vatican-certified art historian with 10+ years experience",
+      "imageName": "luca.jpg",
+      "imageUrl": "https://s3.amazonaws.com/quiver-profiles/luca.jpg",
+      "dateOfBirth": "1982-11-15T00:00:00.000Z",
+      "gender": "Male"
+    },
+    "phone": "+393471234567",
+    "location": {
+      "type": "Point",
+      "coordinates": [12.4534, 41.9022]
+    },
+    "verification": {
+      "isVerified": true,
+      "verifiedAt": "2023-05-20T09:15:00.000Z"
+    },
+    "verificationDocs": {
+      "govIdNumber": 1122334455,
+      "govIdUrl": "https://s3.amazonaws.com/quiver-ids/luca-passport.jpg"
+    },
+    "preferences": {
+      "tags": ["architecture", "renaissance", "sculpture"],
+      "languages": ["en", "it", "es"]
+    },
+    "createdAt": "2023-02-18T14:30:00.000Z"
+  },
+  "Escort": {
+    "services": [
+      {
+        "name": "tour_guide",
+        "hourlyRate": 60,
+        "description": "Exclusive access to restricted Vatican areas"
+      }
+    ],
+    "availability": [
+      {
+        "day": "tue",
+        "slots": [
+          {
+            "start": "2023-06-27T09:00:00.000Z",
+            "end": "2023-06-27T15:00:00.000Z"
+          }
+        ]
+      },
+      {
+        "day": "thu",
+        "slots": [
+          {
+            "start": "2023-06-29T13:00:00.000Z",
+            "end": "2023-06-29T18:00:00.000Z"
+          }
+        ]
+      }
+    ],
+    "tags": ["vip-access", "art-history", "early-christian"],
+    "stats": {
+      "completedBookings": 42,
+      "averageRating": 4.9,
+      "responseTime": 12
+    },
+    "createdAt": "2023-02-20T10:00:00.000Z",
+    "updatedAt": "2023-06-15T08:45:00.000Z"
+  },
+
+  "User": {
+    "email": "kai.adventure@example.com",
+    "role": "escort",
+    "password": "N3wZealand!",
+    "profile": {
+      "fullName": "Kai Thompson",
+      "bio": "Certified extreme sports instructor - bungee, skydive, jetboat",
+      "imageName": "kai.jpg",
+      "imageUrl": "https://s3.amazonaws.com/quiver-profiles/kai.jpg",
+      "dateOfBirth": "1990-08-22T00:00:00.000Z",
+      "gender": "Non-binary"
+    },
+    "phone": "+64211234567",
+    "location": {
+      "type": "Point",
+      "coordinates": [168.6626, -45.0312]
+    },
+    "verification": {
+      "isVerified": true,
+      "verifiedAt": "2023-04-01T11:20:00.000Z"
+    },
+    "verificationDocs": {
+      "govIdNumber": 5566778899,
+      "driverIdUrl": "https://s3.amazonaws.com/quiver-ids/kai-license.jpg"
+    },
+    "preferences": {
+      "tags": ["adrenaline", "outdoors", "safety-first"],
+      "languages": ["en", "mi"]
+    },
+    "createdAt": "2023-03-25T09:15:00.000Z"
+  },
+  "Escort": {
+    "services": [
+      {
+        "name": "adventure",
+        "hourlyRate": 75,
+        "description": "Includes equipment and safety briefing"
+      }
+    ],
+    "availability": [
+      {
+        "day": "wed",
+        "slots": [
+          {
+            "start": "2023-06-28T08:00:00.000Z",
+            "end": "2023-06-28T17:00:00.000Z"
+          }
+        ]
+      },
+      {
+        "day": "sun",
+        "slots": [
+          {
+            "start": "2023-07-02T10:00:00.000Z",
+            "end": "2023-07-02T16:00:00.000Z"
+          }
+        ]
+      }
+    ],
+    "tags": ["bungee", "skydiving", "whitewater"],
+    "stats": {
+      "completedBookings": 36,
+      "averageRating": 4.8,
+      "responseTime": 18
+    },
+    "createdAt": "2023-03-28T14:00:00.000Z",
+    "updatedAt": "2023-06-14T17:30:00.000Z"
+  }
+}
