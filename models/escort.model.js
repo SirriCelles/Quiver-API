@@ -11,12 +11,17 @@ const escortSchema = mongoose.Schema(
         'Please provide you full user details to become an escort',
       ],
     },
+    city: [
+      {
+        type: String,
+        required: [true, 'Please provide atleast one city'],
+      },
+    ],
     services: [
       {
         name: {
           type: String,
           required: true,
-          enum: ['tour_guide', 'dining', 'adventure'],
         },
         hourlyRate: {
           type: Number,
@@ -72,7 +77,7 @@ const escortSchema = mongoose.Schema(
 
 // for any find method, get query including these fields
 escortSchema.pre(/^find/, function (next) {
-  this.select('services availability tags stats');
+  this.select('city services availability tags stats');
 
   next();
 });

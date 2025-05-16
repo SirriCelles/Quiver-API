@@ -4,6 +4,7 @@ import catchAsync from '../utils/catchError.js';
 
 export const getAllResource = (Model) =>
   catchAsync(async (req, res, next) => {
+    console.log(req.query);
     const query = Model.find();
     const features = new APIFeatures(query, req.query)
       .filter()

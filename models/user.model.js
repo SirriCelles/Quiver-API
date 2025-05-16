@@ -49,7 +49,7 @@ const userSchema = mongoose.Schema(
       dateOfBirth: Date,
       gender: {
         type: String,
-        enum: ['male', 'female', 'other', 'prefer not to say'],
+        enum: ['male', 'female', 'non-binary', 'other', 'prefer not to say'],
       },
     },
     location: {
@@ -61,7 +61,6 @@ const userSchema = mongoose.Schema(
       coordinates: {
         //GeoJSON format [long, lat]
         type: [Number],
-        required: true,
         index: '2dshpere', //Geospatial index
       },
     },
@@ -111,14 +110,40 @@ const userSchema = mongoose.Schema(
   { timestamps: true },
 );
 
+userSchema.index({ location: '2dsphere' });
+
+userSchema.virtual('age').get(function () {
+  if (this.profile?.dateOfBirth) {
+    const today = new Date();
+    const birth = new Date(this.profile.dateOfBirth);
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birth.getDate())
+    ) {
+      age--;
+    }
+    return age;
+  }
+  return null;
+});
+
+userSchema.virtual('escortProfile', {
+  ref: 'Escort',
+  localField: '_id',
+  foreignField: '_userRef',
+  justOne: true,
+});
+
 userSchema.set('toJSON', {
   virtuals: true,
   versionKey: false,
 });
 
-userSchema.pre(/^find/, function (next) {
-  this.select('-__v -verificationDocs -phone');
-  next();
+userSchema.set('toObject', {
+  virtuals: true,
+  versionKey: false,
 });
 
 userSchema.pre('save', async function (next) {
@@ -145,6 +170,11 @@ userSchema.pre('save', function (next) {
       coordinates: [this.location.lng, this.location.lat],
     };
   }
+  next();
+});
+
+userSchema.pre(/^find/, function (next) {
+  this.select('-__v -verificationDocs -phone');
   next();
 });
 

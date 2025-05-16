@@ -11,15 +11,23 @@ const updateSchema = Joi.object({
     dateOfBirth: Joi.date().max('now').messages({
       'date.max': 'Date of birth cannot be in the future',
     }),
-    gender: Joi.string().valid('male', 'female', 'other', 'prefer not to say'),
+    gender: Joi.string()
+      .lowercase()
+      .valid('male', 'female', 'non-binary', 'other', 'prefer not to say')
+      .messages({
+        'string.lowercase': 'Gender must be lowercase',
+        'any.only':
+          'Gender must be one of: male, female, other, prefer not to say',
+      }),
   }).unknown(true),
   location: Joi.object({
-    lat: Joi.number().min(-90).max(90).required(),
-    lng: Joi.number().min(-180).max(180).required(),
+    lat: Joi.number().min(-90).max(90),
+    lng: Joi.number().min(-180).max(180),
   }),
+  city: Joi.array().items(Joi.string()),
   services: Joi.array().items(
     Joi.object({
-      name: Joi.string().valid('tour_guide', 'dining', 'adventure'),
+      name: Joi.string(),
       hourlyRate: Joi.number().min(5),
       description: Joi.string(),
     }),

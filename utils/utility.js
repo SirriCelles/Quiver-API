@@ -11,19 +11,19 @@ export const calculateAge = (birthDate) => {
   return age;
 };
 
-export const formatLocationToGeoJson = (req, res, next) => {
+export const formatLocationToGeoJson = catchAsync(async (req, res, next) => {
   if (req.body?.location && (req.body.location.lat || req.body.location.lng)) {
     // If location is in lat/lng format, convert to GeoJSON
     const lng = req.body.location.lng;
     const lat = req.body.location.lat;
     req.body.location = {
       type: 'Point',
-      coordinates: [lng, lat],
+      coordinates: [parseFloat(lng), parseFloat(lat)],
     };
   }
 
   next();
-};
+});
 
 export const formatLocationToClient = (location) => {
   if (location && location.coordinates) {

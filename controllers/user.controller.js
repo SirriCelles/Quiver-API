@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose, { model } from 'mongoose';
 import Escort from '../models/escort.model.js';
 import User from '../models/user.model.js';
 import AppError from '../utils/appError.js';
@@ -10,6 +10,7 @@ import {
   formatLocationToGeoJson,
 } from '../utils/utility.js';
 import { getAllResource } from './handleFactory.js';
+import { populate } from 'dotenv';
 
 export const createUser = async (req, res) => {
   res.status(500).json({
@@ -24,88 +25,32 @@ export const createUser = async (req, res) => {
  * @access  Private (All roles)
  */
 export const getCurrentUser = catchAsync(async (req, res, next) => {
-  const user = await User.findById(req.user.id).lean();
+  let user;
+
+  if (req.user.role === 'escort') {
+    user = await User.findById(req.user.id)
+      .populate({
+        path: 'escortProfile',
+        select: 'services availability tags stats',
+      })
+      .lean();
+  } else {
+    user = await User.findById(req.user.id);
+  }
 
   if (!user) {
     return next(new AppError('User not found', 404));
   }
 
-  // Role based data filtering
-  let responseData;
-  if (user.role === 'escort') {
-    // const escortProfile = await getEscortProfile(user._id);
-
-    const escortProfile = await Escort.findOne({ _userRef: user._id }).lean();
-    responseData = { ...user, ...escortProfile };
-  } else {
-    responseData = user;
-  }
-
   // Format location data for client
   if (user.location?.coordinates) {
-    responseData.location = formatLocationToClient(user.location);
+    user.location = formatLocationToClient(user.location);
   }
 
   res.status(200).json({
     status: 'success',
     data: {
-      ...responseData,
-    },
-  });
-});
-
-/**
- * @desc    Create escort profile
- * @route   POST /api/escorts/profile
- * @access  Private (User must be authenticated)
- */
-
-export const createEscortProfile = catchAsync(async (req, res, next) => {
-  const userId = req.user.id;
-  // verify user exist and isn't already an escort
-  const user = await User.findById(userId);
-
-  if (!user)
-    return next(new AppError('You must sign up to become an escort', 404));
-
-  const {
-    role,
-    password,
-    passwordConfirm,
-    verification,
-    stats,
-    ...safeUpdates
-  } = req.body;
-
-  // Sanitize input (remove undefined/empty values)
-  let updates = sanitizeObject(safeUpdates);
-
-  updates.role = 'escort';
-
-  // validate required fields
-  const { services, availability, tags } = req.body;
-
-  if (!services) {
-    return next(new AppError('Please fill out the services section', 400));
-  }
-
-  const updatedUser = await User.findByIdAndUpdate(userId, updates, {
-    new: true,
-    runValidators: true,
-  }).lean();
-
-  const escortProfile = await Escort.create({
-    _userRef: userId,
-    services,
-    availability,
-    tags,
-  }).lean();
-
-  res.status(201).json({
-    status: 'success',
-    data: {
-      ...updatedUser,
-      ...escortProfile,
+      ...user,
     },
   });
 });
@@ -129,30 +74,44 @@ export const updateCurrentUser = catchAsync(async (req, res, next) => {
   // Sanitize input (remove undefined/empty values)
   let updates = sanitizeObject(safeUpdates);
 
-  // Update base user document
-  const user = await User.findByIdAndUpdate(req.user.id, updates, {
-    new: true,
-    runValidators: true,
-  }).lean();
+  let user;
+
+  if (req.user.role === 'escort') {
+    user = await User.findByIdAndUpdate(req.user.id, updates, {
+      new: true,
+      runValidators: true,
+    })
+      .populate({
+        path: 'escortProfile',
+        select: 'services availability tags stats',
+      })
+      .lean();
+
+    if (updates.services || updates.availability || updates.tags) {
+      const escortProfile = await Escort.findOneAndUpdate(
+        { _userRef: req.user.id },
+        updates,
+        {
+          new: true,
+          runValidators: true,
+        },
+      ).lean();
+
+      if (!escortProfile) {
+        return next(new AppError('Escort profile update failed', 404));
+      }
+
+      user.escortProfile = escortProfile;
+    }
+  } else {
+    user = await User.findByIdAndUpdate(req.user.id, updates, {
+      new: true,
+      runValidators: true,
+    }).lean();
+  }
 
   if (!user) {
     return next(new AppError('User update failed, User not found', 404));
-  }
-
-  // Handle Escort-Specific Update
-  let escortProfile;
-  if (
-    user.role === 'escort' &&
-    (updates.services || updates.availability || updates.tags)
-  ) {
-    escortProfile = await Escort.findOneAndUpdate(
-      { _userRef: user._id },
-      updates,
-      {
-        new: true,
-        runValidators: true,
-      },
-    ).lean();
   }
 
   // response
@@ -160,7 +119,6 @@ export const updateCurrentUser = catchAsync(async (req, res, next) => {
     status: 'success',
     data: {
       ...user,
-      ...escortProfile,
     },
   };
 
