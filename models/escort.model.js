@@ -75,6 +75,8 @@ const escortSchema = mongoose.Schema(
   { timestamps: true },
 );
 
+escortSchema.index({ city: 1 }); // index for city and tags
+
 // for any find method, get query including these fields
 escortSchema.pre(/^find/, function (next) {
   this.select('city services availability tags stats');
