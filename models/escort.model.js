@@ -1,4 +1,5 @@
 import mongoose, { Schema } from 'mongoose';
+// TODO: Remove the services field ad create a services managemet functioality.
 
 const escortSchema = mongoose.Schema(
   {

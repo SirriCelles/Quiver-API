@@ -1,22 +1,27 @@
 import mongoose from 'mongoose';
+import AppError from '../utils/appError';
 
 const bookingSchema = mongoose.Schema(
   {
-    user: {
+    userRef: {
       type: mongoose.Schema.ObjectId,
       ref: 'User',
       required: [true, 'Booking must belong to a User!'],
     },
-    escort: {
+    escortRef: {
       type: mongoose.Schema.ObjectId,
       ref: 'Escort',
       required: [true, 'Booking must belong to an Escort!'],
     },
-    service: {
-      type: mongoose.Schema.ObjectId,
-      ref: 'Service',
-      required: [true, 'Booking must be for a specific Service!'],
-    },
+    services: [
+      {
+        name: String,
+        hourlyRate: {
+          type: Number,
+          required: true,
+        },
+      },
+    ],
     startTime: {
       type: Date,
       required: [true, 'Booking must have a start time!'],
@@ -71,6 +76,7 @@ const bookingSchema = mongoose.Schema(
     completedAt: Date,
     cancelledAt: Date,
   },
+
   {
     timestamps: true,
     toJSON: { virtuals: true },
@@ -81,3 +87,30 @@ const bookingSchema = mongoose.Schema(
 // Indexes
 bookingSchema.index({ escort: 1, startTime: 1 });
 bookingSchema.index({ user: 1, status: 1 });
+
+// prevent double bookings
+bookingSchema.pre('save', async function (next) {
+  const overlappingBooking = await this.constructor.findOne({
+    escort: this.escort,
+    status: { $in: ['pending', 'confirmed', 'held'] },
+    $or: [
+      {
+        startTime: { $lt: this.endTime },
+        endTime: { $gt: this.startTime },
+        status: { $ne: 'cancelled' },
+      },
+    ],
+  });
+
+  if (overlappingBooking) {
+    return next(
+      new AppError('This booking overlaps with an existing booking.', 400),
+    );
+  }
+
+  next();
+});
+
+const Booking = mongoose.model('Booking', bookingSchema);
+
+export default Booking;
