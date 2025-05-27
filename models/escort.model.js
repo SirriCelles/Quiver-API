@@ -72,6 +72,11 @@ const escortSchema = mongoose.Schema(
       },
       responseTime: Number, //Average in minutes
     },
+    bookingBuffer: {
+      type: Number,
+      // Default buffer time in hours before a booking
+      select: false,
+    },
   },
   { timestamps: true },
 );

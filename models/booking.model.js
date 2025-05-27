@@ -13,15 +13,10 @@ const bookingSchema = mongoose.Schema(
       ref: 'Escort',
       required: [true, 'Booking must belong to an Escort!'],
     },
-    services: [
-      {
-        name: String,
-        hourlyRate: {
-          type: Number,
-          required: true,
-        },
-      },
-    ],
+    serviceId: {
+      type: mongoose.Schema.ObjectId,
+      required: [true, 'Booking must be for a specific service!'],
+    },
     startTime: {
       type: Date,
       required: [true, 'Booking must have a start time!'],
@@ -84,14 +79,16 @@ const bookingSchema = mongoose.Schema(
   },
 );
 
-// Indexes
-bookingSchema.index({ escort: 1, startTime: 1 });
-bookingSchema.index({ user: 1, status: 1 });
+// Indexes for efficient querying
+bookingSchema.index({ userRef: 1 });
+bookingSchema.index({ escortRef: 1 });
+bookingSchema.index({ startTime: 1 });
+bookingSchema.index({ status: 1 });
 
 // prevent double bookings
 bookingSchema.pre('save', async function (next) {
   const overlappingBooking = await this.constructor.findOne({
-    escort: this.escort,
+    escortRef: this.escortRef,
     status: { $in: ['pending', 'confirmed', 'held'] },
     $or: [
       {

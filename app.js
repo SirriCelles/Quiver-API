@@ -1,5 +1,6 @@
 import express from 'express';
 import path from 'path';
+import { dirname } from 'path';
 import cookieParser from 'cookie-parser';
 import logger from 'morgan';
 import swaggerJSDoc from 'swagger-jsdoc';
@@ -16,11 +17,18 @@ import { NODE_ENV } from './config/env.js';
 import authRouter from './routes/auth.routes.js';
 import userRouter from './routes/user.routes.js';
 import escortRouter from './routes/escort.routes.js';
+import bookingRouter from './routes/booking.routes.js';
 import swaggerOptions from './utils/swaggerOptions.js';
 import globalErrorHandler from './controllers/error.controller.js';
 import AppError from './utils/appError.js';
 
 const app = express();
+
+app.set('view engine', 'pug');
+app.set('views', path.join(path.resolve(), 'views'));
+
+//Serving static files
+app.use(express.static(path.join(dirname, 'public')));
 
 // Enable CORS for all routes
 app.use(cors());
@@ -64,9 +72,6 @@ app.use(xss());
 // app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
-//Serving static files
-// app.use(express.static(path.join(__dirname, 'public')));
-
 const specs = swaggerJSDoc(swaggerOptions);
 
 // ROUTES
@@ -75,6 +80,8 @@ app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/users', userRouter);
 
 app.use('/api/v1/escorts', escortRouter);
+
+app.use('/api/v1/bookings', bookingRouter);
 
 // Serve Swagger UI at /api-docs
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));

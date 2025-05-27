@@ -33,13 +33,27 @@ export const validateBooking = catchAsync(async (req, res, next) => {
       'date.greater': 'End time must be after start time',
       'any.required': 'End time is required',
     }),
-  }).unknown(true);
+    notes: Joi.string().max(500).allow(''),
+  });
 
   const { error } = schema.validate(req.body);
 
   if (error) {
     const msg = error.details[0].message;
     return next(new AppError(msg, 400));
+  }
+
+  next();
+});
+
+export const validateBuffer = catchAsync(async (req, res, next) => {
+  const schema = Joi.object({
+    hours: Joi.number().integer().min(0).max(24).required(),
+  });
+
+  const { error } = schema.validate(req.body);
+  if (error) {
+    return next(new AppError(error.details[0].message, 400));
   }
 
   next();

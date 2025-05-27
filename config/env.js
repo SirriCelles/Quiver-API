@@ -15,4 +15,5 @@ export const {
   EMAIL_PASSWORD,
   EMAIL_HOST,
   EMAIL_PORT,
+  EMAIL_FROM,
 } = process.env;
