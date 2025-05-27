@@ -9,3 +9,5 @@ router.use(authorize);
 
 // Traveler routes
 router.route('/').post(restrictTo('user'), validateBooking, createBooking);
+
+export default router;

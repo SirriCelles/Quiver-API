@@ -1,6 +1,7 @@
 import express from 'express';
 import path from 'path';
 import { dirname } from 'path';
+import { fileURLToPath } from 'url';
 import cookieParser from 'cookie-parser';
 import logger from 'morgan';
 import swaggerJSDoc from 'swagger-jsdoc';
@@ -26,9 +27,9 @@ const app = express();
 
 app.set('view engine', 'pug');
 app.set('views', path.join(path.resolve(), 'views'));
-
 //Serving static files
-app.use(express.static(path.join(dirname, 'public')));
+const __dirname = dirname(fileURLToPath(import.meta.url));
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Enable CORS for all routes
 app.use(cors());

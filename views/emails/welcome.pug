@@ -1,0 +1,24 @@
+extends baseEmail
+
+block content
+  p Hi #{firstName},
+  p Welcome to Quiver!, We’re thrilled you’re here. 🎉🙏
+  p Quiver helps you find your perfect Escort and make your experience unforgettable.
+  p 🔹 First Step: Update Your Profile
+  p 🔹 Pro Tip: Search and Book Escorts
+  p 🔹 Need help? Reply to this email or visit our Help Center.
+
+  table.btn.btn-primary(role='presentation', border='0', cellpadding='0', cellspacing='0')
+    tbody
+      tr
+        td(align='left')
+          table(role='presentation', border='0', cellpadding='0', cellspacing='0')
+            tbody
+              tr
+                td
+                  a(href=`${url}`, target='_blank') Open Quiver
+  p We're here to make your experience amazing!--Let us know what you think.
+  d
+    p Cheers,
+    p The Quiver Team
+    p Founder @ Quiver

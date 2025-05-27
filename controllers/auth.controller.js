@@ -11,7 +11,8 @@ import {
   NODE_ENV,
 } from '../config/env.js';
 import AppError from '../utils/appError.js';
-import sendEMail from '../utils/email.js';
+import EMail from '../utils/email.js';
+import Email from '../utils/email.js';
 
 const signToken = async (id) => {
   const token = await promisify(jwt.sign)({ id }, JWT_SECRET, {
@@ -66,6 +67,11 @@ export const signUp = catchAsync(async (req, res, next) => {
     // isEscort: req.body.isEscort,
   });
 
+  await new EMail(
+    user,
+    `${req.protocol}://${req.get('host')}/me`,
+  ).sendWelcome();
+
   // hash pasword and authenticate user
   await createAndSendToken(user, 201, res);
 });
@@ -117,16 +123,14 @@ export const forgotPassword = catchAsync(async (req, res, next) => {
   // 3- send token back as an email
   const resetPwdURL = `${req.protocol}://${req.get('host')}/api/v1/auth/reset-password/${resetTokenString}`;
 
-  const message = `Forgot your password? Submit you new password and
-    password confirmation to the link : ${resetPwdURL}. \n If you didn't request
-    for a password change, please ignore this email `;
-
   try {
-    await sendEMail({
-      email: user.email,
-      subject: 'Reset Your Password (Only valid for 10minutes)',
-      message,
-    });
+    // await sendEMail({
+    //   email: user.email,
+    //   subject: 'Reset Your Password (Only valid for 10minutes)',
+    //   message,
+    // });
+
+    await new Email(user, resetPwdURL).sendPasswordReset();
   } catch (error) {
     user.passwordResetToken = undefined;
     user.passwordResetTokenExpires = undefined;

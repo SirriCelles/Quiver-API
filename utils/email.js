@@ -1,7 +1,8 @@
 import nodemailer from 'nodemailer';
 import pug from 'pug';
 import { dirname } from 'path';
-import { htmlToText } from 'html-to-text';
+import { fileURLToPath } from 'url';
+import { convert } from 'html-to-text';
 import {
   EMAIL_PASSWORD,
   EMAIL_NAME,
@@ -37,11 +38,17 @@ class Email {
 
   async send(template, subject) {
     // Render HTML based on a pug template
-    const html = pug.renderFile(`${dirname}/../views/emails/${template}.pug`, {
-      firstName: this.firstName,
-      url: this.url,
-      subject,
-    });
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = dirname(__filename);
+    // Use the pug template to render the HTML
+    const html = pug.renderFile(
+      `${__dirname}/../views/emails/${template}.pug`,
+      {
+        firstName: this.firstName,
+        url: this.url,
+        subject,
+      },
+    );
 
     // Define the email options
     const mailOptions = {
@@ -49,7 +56,7 @@ class Email {
       to: this.to,
       subject,
       html, // Use the rendered HTML if available
-      text: htmlToText.fromString(html), // Convert HTML to text
+      text: convert(html), // Convert HTML to text
     };
 
     // Create a transporter
@@ -61,6 +68,13 @@ class Email {
 
   async sendWelcome() {
     await this.send('welcome', `Welcome to Quiver--Let's get started!`);
+  }
+
+  async sendPasswordReset() {
+    await this.send(
+      'passwordReset',
+      'Your password reset token (valid for only 10 minutes)',
+    );
   }
 }
 
