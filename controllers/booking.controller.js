@@ -143,9 +143,32 @@ export const createBooking = catchAsync(async (req, res, next) => {
   });
 });
 
-export const getBooking = catchAsync(async (req, res, next) => {});
+/**
+ * @desc Escort Confirms booking
+ * @route PATCH /api/v1/bookings/:id/confirm
+ * @access Private (Escort)
+ */
+export const confirmBooking = catchAsync(async (req, res, next) => {
+  const booking = await Booking.findById(req.params.bookingId);
 
-export const confirmBooking = catchAsync(async (req, res, next) => {});
+  if (!booking) {
+    return next(new AppError('Booking not found', 404));
+  }
+
+  if (booking.escortRef.toString() !== req.user.id) {
+    return next(new AppError('Not authorized to confirm!', 403));
+  }
+
+  booking.status = 'confirmed';
+  await booking.save();
+
+  res.status(200).json({
+    status: 'success',
+    data: { booking },
+  });
+});
+
+export const getBooking = catchAsync(async (req, res, next) => {});
 
 export const completeBooking = catchAsync(async (req, res, next) => {});
 
