@@ -4,6 +4,7 @@ import { getUserById } from '../controllers/user.controller.js';
 import {
   createEscortProfile,
   searchEscorts,
+  setBookingBuffer,
 } from '../controllers/escort.controller.js';
 import { authorize, restrictTo } from '../controllers/auth.controller.js';
 import { validateSearchQuery } from '../services/validateSearchQuery.service.js';
@@ -23,5 +24,8 @@ router.route('/:id').get(getUserById); //get escort public profile by id
 router
   .route('/profile')
   .post(validateUpdateUser, formatLocationToGeoJson, createEscortProfile);
+
+// set booking buffer
+router.patch('/buffer', restrictTo('escort'), setBookingBuffer);
 
 export default router;

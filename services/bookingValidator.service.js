@@ -11,6 +11,7 @@ export const validateBooking = catchAsync(async (req, res, next) => {
     services: Joi.array()
       .items(
         Joi.object({
+          id: Joi.string.required(),
           name: Joi.string().required().messages({
             'string.empty': 'Service name is required',
             'any.required': 'Service name is required',
@@ -28,13 +29,8 @@ export const validateBooking = catchAsync(async (req, res, next) => {
         'any.required': 'Services are required',
       }),
     startTime: Joi.date().iso().min('now').required(),
-    edTime: Joi.date().iso().greater(Joi.ref('startTime')).required().messages({
-      'date.base': 'End time must be a valid date',
-      'date.greater': 'End time must be after start time',
-      'any.required': 'End time is required',
-    }),
     notes: Joi.string().max(500).allow(''),
-  });
+  }).unknown(true);
 
   const { error } = schema.validate(req.body);
 

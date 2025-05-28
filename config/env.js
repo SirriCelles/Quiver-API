@@ -16,4 +16,6 @@ export const {
   EMAIL_HOST,
   EMAIL_PORT,
   EMAIL_FROM,
+  STRIPE_SECRET_KEY,
+  STRIPE_PUBLISHABLE_KEY,
 } = process.env;

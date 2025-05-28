@@ -1,7 +1,10 @@
 import express from 'express';
 import { authorize, restrictTo } from '../controllers/auth.controller.js';
 import { validateBooking } from '../services/bookingValidator.service.js';
-import { createBooking } from '../controllers/booking.controller.js';
+import {
+  createBooking,
+  getCheckoutSession,
+} from '../controllers/booking.controller.js';
 
 const router = express.Router();
 

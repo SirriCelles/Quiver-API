@@ -20,10 +20,10 @@ class Email {
   }
 
   createTransport() {
-    if (NODE_ENV === 'production') {
-      // Create a sendgrid  transporter
-      return 1;
-    }
+    // if (NODE_ENV === 'production') {
+    //   // Create a sendgrid  transporter
+    //   return 1;
+    // }
 
     // create a transporter eg gmail or
     return nodemailer.createTransport({

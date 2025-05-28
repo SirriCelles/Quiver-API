@@ -13,10 +13,17 @@ const bookingSchema = mongoose.Schema(
       ref: 'Escort',
       required: [true, 'Booking must belong to an Escort!'],
     },
-    serviceId: {
-      type: mongoose.Schema.ObjectId,
-      required: [true, 'Booking must be for a specific service!'],
-    },
+    services: [
+      {
+        serviceId: {
+          type: mongoose.Schema.ObjectId,
+          required: [true, 'Booking must be for a specific service!'],
+        },
+        name: { type: String, required: true },
+        hourlyRate: { type: Number, required: true },
+        durationHours: { type: Number, required: true },
+      },
+    ],
     startTime: {
       type: Date,
       required: [true, 'Booking must have a start time!'],
@@ -25,22 +32,17 @@ const bookingSchema = mongoose.Schema(
       type: Date,
       required: [true, 'Booking must have an end time!'],
     },
-
+    totalAmount: { type: Number, required: true },
+    status: {
+      type: String,
+      enum: ['pending', 'confirmed', 'completed', 'cancelled', 'disputed'],
+      default: 'pending',
+    },
     payment: {
-      paymentIntentId: String,
+      paymentId: String,
       paymentMethod: {
         type: String,
-        enum: ['mtnMomo', 'orangeMomo', 'card', 'cash', 'bankTransfer'],
-        default: 'card',
-      },
-      amount: {
-        type: Number,
-        required: [true, 'Booking must have a payment amount!'],
-      },
-      currency: {
-        type: String,
-        enum: ['XAF', 'USD', 'EUR'],
-        default: 'XAF',
+        enum: ['mtnMomo', 'orangeMomo', 'stripe'],
       },
       status: {
         type: String,
@@ -55,18 +57,6 @@ const bookingSchema = mongoose.Schema(
         default: 'pending',
       },
     },
-    status: {
-      type: String,
-      enum: [
-        'pending',
-        'confirmed',
-        'completed',
-        'cancelled',
-        'held',
-        'disputed',
-      ],
-      default: 'pending',
-    },
     notes: String,
     completedAt: Date,
     cancelledAt: Date,
@@ -80,9 +70,10 @@ const bookingSchema = mongoose.Schema(
 );
 
 // Indexes for efficient querying
+bookingSchema.index({ 'services.serviceId': 1 });
 bookingSchema.index({ userRef: 1 });
 bookingSchema.index({ escortRef: 1 });
-bookingSchema.index({ startTime: 1 });
+bookingSchema.index({ startTime: 1, endTime });
 bookingSchema.index({ status: 1 });
 
 // prevent double bookings
