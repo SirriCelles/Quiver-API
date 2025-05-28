@@ -479,3 +479,26 @@ export const searchEscortsWithLocation = catchAsync(async (req, res, next) => {
 
   res.status(200).json(response);
 });
+
+export const setBookingBuffer = catchAsync(async (req, res, next) => {
+  const { hours } = req.body;
+
+  if (!hours || isNaN(hours) || hours < 0 || hours > 24) {
+    return next(new AppError('Invalid buffer hours limit is (0-24', 400));
+  }
+
+  const escort = await Escort.findByOneAndUpdate(
+    { _userRef: req.user.id },
+    { bookingBuffer: parseInt(hours) },
+    { new: true },
+  );
+
+  if (!escort) {
+    return new (AppError('Escort Profile not found', 404))();
+  }
+
+  res.status(200).json({
+    status: 'success',
+    data: { bookingBuffer: escort.bookingBuffer },
+  });
+});
