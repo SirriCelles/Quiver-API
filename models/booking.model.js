@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import AppError from '../utils/appError';
+import AppError from '../utils/appError.js';
 
 const bookingSchema = mongoose.Schema(
   {
@@ -73,7 +73,7 @@ const bookingSchema = mongoose.Schema(
 bookingSchema.index({ 'services.serviceId': 1 });
 bookingSchema.index({ userRef: 1 });
 bookingSchema.index({ escortRef: 1 });
-bookingSchema.index({ startTime: 1, endTime });
+bookingSchema.index({ startTime: 1, endTime: 1 });
 bookingSchema.index({ status: 1 });
 
 // prevent double bookings

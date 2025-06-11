@@ -34,6 +34,7 @@ const createAndSendToken = async (user, statusCode, res) => {
   const cookieOptions = {
     expires: new Date(Date.now() + JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000),
     //secure = true : only encrypted browsers can access the cookie e.g https
+    sameSite: 'Strict',
     httpOnly: true, //to prevent csrf , that is browers cannot access and modify the cook
   };
 

@@ -27,6 +27,7 @@ const escortSchema = mongoose.Schema(
         hourlyRate: {
           type: Number,
           required: true,
+          min: 5,
         },
         description: String,
       },

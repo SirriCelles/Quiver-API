@@ -8,7 +8,6 @@ import {
   createBooking,
   disputeBooking,
   getBooking,
-  getCheckoutSession,
   getEscortBookings,
   getMyBookings,
 } from '../controllers/booking.controller.js';
@@ -27,10 +26,8 @@ router.get('/escort-bookings', restrictTo('escort'), getEscortBookings);
 router.patch('/:id/confirm', restrictTo('escort'), confirmBooking);
 
 // Shared routes
-router
-  .route('/:id')
-  .get(getBooking)
-  .patch('/cancel', cancelBooking)
-  .patch('/complete', completeBooking);
+router.get('/:id', getBooking);
+router.patch('/:id/cancel', cancelBooking);
+router.patch('/:id/complete', completeBooking);
 
 export default router;
