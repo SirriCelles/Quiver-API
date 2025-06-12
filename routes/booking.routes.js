@@ -15,13 +15,14 @@ import {
 
 const router = express.Router();
 
+router.get('/verify/:sessionId', verifyPayment);
+
 router.use(authorize);
 
 // User routes
 router
   .route('/create-checkout-session')
   .post(restrictTo('user'), validateBooking, createBooking);
-router.get('/verify/:sessionId', verifyPayment);
 router.get('/my-bookings', getMyBookings);
 router.post('/:id/dispute', restrictTo('user'), disputeBooking);
 

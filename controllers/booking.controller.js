@@ -32,7 +32,6 @@ const checkBufferTime = async (escortId, startTime, bufferHours) => {
 // after the transaction is successful, the checkout.session.completed webhook event is triggers the order fulfillment process
 
 export const createBooking = catchAsync(async (req, res, next) => {
-  console.log(req.body);
   const { escortId, services, startTime, notes, duration } = req.body;
   const userId = req.user.id;
   if (!escortId || !services.length === 0) {
@@ -105,10 +104,10 @@ export const createBooking = catchAsync(async (req, res, next) => {
         price_data: {
           currency: 'usd',
           product_data: {
-            name: `Service for Escort ${escort._userRef.profile.fullName} with ID: ${escortId}`,
+            name: `Service for Escort ${escort._userRef.profile.fullName}`,
             description: `Services: ${bookingServices.map((s) => s.name).join(', ')}`,
           },
-          amount: amount,
+          unit_amount: amount,
         },
         quantity: 1,
       },
@@ -117,8 +116,8 @@ export const createBooking = catchAsync(async (req, res, next) => {
     // return_url: `${req.protocol}://${req.get('host')}/api/v1/bookings/checkout/sessions/success?session_id={CHECKOUT_SESSION_ID}`,
     return_url: `http://localhost:5173/booking/success?session_id={CHECKOUT_SESSION_ID}`,
     metadata: {
-      escortId: escort._userRef._id,
-      serviceIds: serviceIds.join(','),
+      escortId: escort._userRef._id.toString(),
+      service: services[0].toString(),
       startTime,
       endTime,
       // bookingId: booking._id.toString(),
@@ -169,6 +168,10 @@ export const verifyPayment = catchAsync(async (req, res, next) => {
     { status: 'confirmed' },
     { new: true },
   );
+
+  if (!booking) {
+    return next(new AppError('Booking not found', 404));
+  }
 
   res.status(200).json({
     status: 'success',
