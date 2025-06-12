@@ -32,14 +32,15 @@ const checkBufferTime = async (escortId, startTime, bufferHours) => {
 // after the transaction is successful, the checkout.session.completed webhook event is triggers the order fulfillment process
 
 export const createBooking = catchAsync(async (req, res, next) => {
-  const { escortId, services, startTime, notes } = req.body;
+  console.log(req.body);
+  const { escortId, services, startTime, notes, duration } = req.body;
   const userId = req.user.id;
   if (!escortId || !services.length === 0) {
     return next(new AppError('Escort ID and Service ID are required', 400));
   }
 
   // validate escort
-  const escort = await Escort.findById(escortId).populate(_userRef);
+  const escort = await Escort.findById(escortId).populate('_userRef');
   if (!escort) {
     return next(new AppError('Escort not found', 404));
   }
@@ -51,22 +52,23 @@ export const createBooking = catchAsync(async (req, res, next) => {
   const serviceIds = [];
 
   for (const serviceRef of services) {
-    const service = escort.service.id(serviceRef.id);
-    if (!service) {
-      return next(new AppError(`Service ${serviceRef.name} not found`, 404));
-    }
+    // const service = escort.services.find(_id === serviceRef._id);
+    // if (!service) {
+    //   return next(new AppError(`Service ${serviceRef.name} not found`, 404));
+    // }
 
     // calaculate duration for each service (could be same or different durations)
-    const duration = serviceRef?.duration;
+    // const duration = serviceRef?.duration;
+    // const sduration = duration;
     totalDuration += duration;
-    totalAmount += duration * service.hourlyRate;
+    totalAmount += duration * serviceRef.hourlyRate;
 
-    serviceIds.push(serviceRef.id);
+    serviceIds.push(serviceRef._id);
 
     bookingServices.push({
-      serviceId: service._id,
-      name: service.name,
-      hourlyRate: service.hourlyRate,
+      serviceId: serviceRef._id,
+      name: serviceRef.name,
+      hourlyRate: serviceRef.hourlyRate,
       durationHours: duration,
     });
   }
@@ -104,6 +106,7 @@ export const createBooking = catchAsync(async (req, res, next) => {
           currency: 'usd',
           product_data: {
             name: `Service for Escort ${escort._userRef.profile.fullName} with ID: ${escortId}`,
+            description: `Services: ${bookingServices.map((s) => s.name).join(', ')}`,
           },
           amount: amount,
         },
@@ -111,12 +114,14 @@ export const createBooking = catchAsync(async (req, res, next) => {
       },
     ],
     mode: 'payment',
-    return_url: `${req.protocol}://${req.get('host')}/api/v1/bookings/checkout/sessions/success?session_id={CHECKOUT_SESSION_ID}`,
+    // return_url: `${req.protocol}://${req.get('host')}/api/v1/bookings/checkout/sessions/success?session_id={CHECKOUT_SESSION_ID}`,
+    return_url: `http://localhost:5173/booking/success?session_id={CHECKOUT_SESSION_ID}`,
     metadata: {
       escortId: escort._userRef._id,
       serviceIds: serviceIds.join(','),
       startTime,
       endTime,
+      // bookingId: booking._id.toString(),
     },
   });
 
@@ -139,6 +144,37 @@ export const createBooking = catchAsync(async (req, res, next) => {
     data: {
       booking,
       clientSecret: session.client_secret,
+    },
+  });
+});
+
+/**
+ * @desc    Verify booking payment
+ * @route   GET /api/v1/bookings/verify/:sessionId
+ * @access  Private
+ */
+export const verifyPayment = catchAsync(async (req, res, next) => {
+  const session = await stripe.checkout.sessions.retrieve(req.params.sessionId);
+
+  if (session.payment_status !== 'paid') {
+    return res.status(400).json({
+      status: 'pending',
+      message: 'Payment not completed',
+    });
+  }
+
+  // Update booking status
+  const booking = await Booking.findOneAndUpdate(
+    { 'payment.paymentId': session.id },
+    { status: 'confirmed' },
+    { new: true },
+  );
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      status: session.payment_status,
+      booking,
     },
   });
 });

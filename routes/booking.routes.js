@@ -10,6 +10,7 @@ import {
   getBooking,
   getEscortBookings,
   getMyBookings,
+  verifyPayment,
 } from '../controllers/booking.controller.js';
 
 const router = express.Router();
@@ -17,7 +18,10 @@ const router = express.Router();
 router.use(authorize);
 
 // User routes
-router.route('/').post(restrictTo('user'), validateBooking, createBooking);
+router
+  .route('/create-checkout-session')
+  .post(restrictTo('user'), validateBooking, createBooking);
+router.get('/verify/:sessionId', verifyPayment);
 router.get('/my-bookings', getMyBookings);
 router.post('/:id/dispute', restrictTo('user'), disputeBooking);
 

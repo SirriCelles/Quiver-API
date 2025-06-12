@@ -29,6 +29,7 @@ export const searchEscorts = catchAsync(async (req, res, next) => {
     minPrice,
     maxPrice,
     tags,
+    services,
     languages,
     availability,
     page = 1,
@@ -220,7 +221,7 @@ export const createEscortProfile = catchAsync(async (req, res, next) => {
     password,
     passwordConfirm,
     verification,
-    stats,
+    // stats,
     ...safeUpdates
   } = req.body;
 
@@ -228,7 +229,7 @@ export const createEscortProfile = catchAsync(async (req, res, next) => {
   let updates = sanitizeObject(safeUpdates);
 
   // validate required fields
-  const { services, availability, tags } = req.body;
+  const { city, services, availability, tags, bookingBuffer, stats } = req.body;
 
   if (!services) {
     return next(new AppError('Please fill out the services section', 400));
@@ -260,6 +261,9 @@ export const createEscortProfile = catchAsync(async (req, res, next) => {
       services,
       availability,
       tags,
+      bookingBuffer,
+      stats,
+      city,
     });
   }
 
